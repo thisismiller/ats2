@@ -1,0 +1,92 @@
+H e l l o W o r l d 2
+-------------------
+
+Imports/module system hasn't changed, although we can now drop the `_` in
+`staload _` to import into global namespace.  However, it seems like all of
+prelude is now just in your global namespace by default.
+
+> //staload file = "prelude/SATS/filebas.sats"
+> //staload _ = "prelude/SATS/string.sats"
+
+We seem to need to include the DATS files for modules that we use overloads
+from.  Otherwise we get a very odd and confusing compile error that looks like
+`error: ‘PMVtmpltcstmat’ undeclared`.
+
+> //#include "share/atspre_staload.hats"
+> staload _ = "prelude/DATS/pointer.dats" (* argv[] *)
+> staload _ = "prelude/DATS/integer.dats" (* x+1 *)
+> staload _ = "prelude/DATS/string.dats"  (* string_isnot_atend, etc. *)
+> staload _(*UNSAFE*) = "prelude/DATS/unsafe.dats" (* g1ofg0 *)
+
+> 
+
+stdio seems to have changed a bit, and now the easiest way to output a
+character is via `filebas`, so let's define a small `putc` equivalent function.
+
+> fn putc(c : char) : void =
+>   fileref_putc(stdout_ref, c)
+
+>
+
+The string types have been condensed down and straightened out, so `string` is
+the type one mostly wants to use now.  The weird conversion between `strptrlen`
+and `string1` has also disappeared.
+
+> fun putstring {n: nat} .<n>. (x: string n) : void =
+>   if string_isnot_empty(x) then
+>     let val first = string_head(x)
+>         val _ = putc(first)
+
+`string_tail` now returns a string!
+
+>         val tail = string_tail(x)
+>         val () = putstring(tail)
+>     in () end
+
+>
+
+Same thing via index still works with only one minor change.  `x : int i`.  The
+`i` needed to be given to int to properly instantiate a concrete type, as
+that's what most string functions seem to expect now.
+
+> fn putstring2 {n : nat} (s : string n) : void = 
+>   let
+>     fun loop {n : nat} {i : nat | i <= n} .<n-i>. (s : string n, x : int i) : void =
+>       if string_isnot_atend(s, x) then
+>         let val c  = s[x]
+>             val _  = putc(c)
+>             val () = loop(s, x+1)
+>         in () end
+>   in
+>     loop(s, 0)
+>   end
+
+>
+
+Strbuf no longer exists
+
+> // Long live fn putstrbuf
+
+>
+
+The closest we have now is `strptr` and `strnptr` (which correspond to `string`
+and `string i` respectively).  Which works mostly the same as just indexing
+into a string.
+
+    fn putstring_strptr (sp : strptr) : void =
+
+
+And `main` has a couple changes now too.  `argv` is now indexed with `[]`
+rather than `.[]`.  We also get a `string` out of it, where we need a `[i:int]
+string i`, so we need to cast it via `g1ofg0`. (Numbers indicate the number of
+applied arguments?)  `main` also now seems to be required to return an `int`,
+which I suppose does make sense.
+
+> implement main(argc, argv) =
+>   let val arg = (if argc >= 2 then argv[1] else "") : string
+>       val str = g1ofg0(arg)
+>       val () = putstring(str)
+>       val () = print_newline()
+>       val () = putstring2(str)
+>       val () = print_newline()
+>   in 0 end
