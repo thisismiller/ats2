@@ -8,7 +8,7 @@ endif
 
 .PHONY: all clean toolchain
 
-all: bin/helloworld
+all: bin/demo bin/helloworld
 
 UNLIT ?= unlit
 ATSOPT ?= patsopt
@@ -19,7 +19,7 @@ ATS_LDFLAGS ?= -L${PATSHOME}/ccomp/atslib/lib/ -latslib
 clean:
 	rm -fr bin/
 	mkdir bin
-	mkdir bin/lib
+	touch bin/.keep
 
 bin/%.dats: %.datslit
 	@echo -e "\tUNLIT\t$^"
