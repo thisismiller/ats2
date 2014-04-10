@@ -1,2 +1,4 @@
 lang: c
 script: bash -ex .travis.sh
+env:
+  - ATS2_VERSION=0.0.7 ATS2_COMMIT=00b8bbbcf8bcc6f320728a667ec3ca511aa50cac
