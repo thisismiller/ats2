@@ -15,6 +15,6 @@ popd
 
 export PATSHOME=$(pwd)/postiats
 export UNLIT=literate/bin/unlit
-export ATSOPT=postiats/bin/patsopt
-export ATSCC=postiats/bin/patscc
+export PATSOPT=postiats/bin/patsopt
+export PATSCC=postiats/bin/patscc
 make
