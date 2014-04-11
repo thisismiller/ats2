@@ -7,7 +7,7 @@ git clone https://github.com/thisismiller/literate.git literate
 git clone git://git.code.sf.net/p/ats2-lang/code postiats
 
 pushd postiats
-git checkout $ATS2_COMMIT
+git reset --hard $ATS2_COMMIT
 ./autogen.sh || true
 ./configure
 make -j1
