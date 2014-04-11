@@ -31,10 +31,16 @@ bin/%.cats: %.catslit
 	@echo -e "\tUNLIT\t$^"
 	${AT}${UNLIT} $^ -o $@
 
+%_sats.c: %.sats
+	@echo -e "\tSATS\t$*.sats"
+	${AT}$(PATSOPT) --output $@ --static $*.sats
 bin/%_sats.c: %.sats
 	@echo -e "\tSATS\t$*.sats"
 	${AT}$(PATSOPT) --output $@ --static $*.sats
 
+%_dats.c: %.dats
+	@echo -e "\tDATS\t$^"
+	${AT}$(PATSOPT) --output $@ --dynamic $^
 bin/%_dats.c: %.dats
 	@echo -e "\tDATS\t$^"
 	${AT}$(PATSOPT) --output $@ --dynamic $^
