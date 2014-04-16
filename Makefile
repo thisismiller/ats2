@@ -8,7 +8,7 @@ endif
 
 .PHONY: all clean toolchain
 
-all: bin/demo bin/helloworld
+all: bin/demo bin/helloworld bin/echoserver
 
 UNLIT ?= unlit
 PATSOPT ?= patsopt
@@ -61,5 +61,10 @@ bin/demo: $(call source_to_obj,${DEMO_SRCS})
 
 HELLOWORLD_SRCS := helloworld.datslit
 bin/helloworld: $(call source_to_obj,${HELLOWORLD_SRCS})
+	@echo -e "\tLD\t$@"
+	${AT}gcc ${PATS_CFLAGS} $^ ${PATS_LDFLAGS} -o $@
+
+ECHOSERVER_SRCS := echoserver.dats
+bin/echoserver: $(call source_to_obj,${ECHOSERVER_SRCS})
 	@echo -e "\tLD\t$@"
 	${AT}gcc ${PATS_CFLAGS} $^ ${PATS_LDFLAGS} -o $@
