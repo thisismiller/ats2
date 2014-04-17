@@ -5,12 +5,30 @@
 
 (*** socket library ***)
 
-abst@ype error_t = int
+%{
+typedef int error_t;
+%}
+abst@ype error_t = $extype"error_t"
+extern castfn int_of_error(err : error_t):<> int
+extern castfn error_of_int(i : int):<> error_t
+
+%{
+atstype_bool
+op_error_eq_error(
+  error_t lhs
+, error_t rhs
+) {
+  return lhs == rhs;
+}
+%}
+symintr =
+extern fun eq_error_error(lhs : error_t, rhs : error_t): bool = "mac#op_error_eq_error"
+overload = with eq_error_error of 0
 
 %{
 typedef int domain_t;
 %}
-abst@ype domain_t = int
+abst@ype domain_t = $extype"domain_t"
 macdef AF_INET = $extval(domain_t, "AF_INET")
 
 abst@ype type_t = int
@@ -58,7 +76,17 @@ destroy_sockaddr_in (
 extern fun create_sockaddr_in(domain : domain_t, addr : int, port : int) : sockaddr_in_t = "mac#create_sockaddr_in"
 extern fun destroy_sockaddr_in(sockaddr : sockaddr_in_t) : void = "mac#destroy_sockaddr_in"
 
-//extern fun bind(socket : socket_t, 
+%{
+error_t
+bind_sockaddr_in(
+  int sock
+, atstype_ptr sockaddr
+) {
+  return bind(sock, sockaddr, sizeof(struct sockaddr_in));
+}
+%}
+
+extern fun bind(socket : socket_t, sockaddr : sockaddr_in_t) : error_t = "mac#bind_sockaddr_in"
 
 abst@ype shutdown_t = int
 macdef SHUT_RD = $extval(shutdown_t, "SHUT_RD")
@@ -72,4 +100,6 @@ extern fun destroy(socket : socket_t, how : shutdown_t) : error_t = "mac#shutdow
 implement main(argc, argv) = 
   let val sock = create(AF_INET, SOCK_STREAM, DEFAULT_PROTOCOL)
       val addr_in = create_sockaddr_in(AF_INET, 0, htons(8877))
+      val () = assertloc(bind(sock, addr_in) = error_of_int(0))
+      val () = destroy_sockaddr_in(addr_in)
   in 0 end
