@@ -6,11 +6,14 @@
 (*** socket library ***)
 
 %{
+#include <errno.h>
 typedef int error_t;
 %}
 abst@ype error_t = $extype"error_t"
 extern castfn int_of_error(err : error_t):<> int
 extern castfn error_of_int(i : int):<> error_t
+
+macdef EOK = error_of_int(0)
 
 %{
 atstype_bool
@@ -53,7 +56,7 @@ abst@ype sockaddr_in_t = $extype"atstype_ptr"
 #include <netinet/in.h>
 
 atstype_ptr
-create_sockaddr_in (
+ats_create_sockaddr_in (
   domain_t af
 , in_addr_t inp
 , in_port_t port
@@ -67,39 +70,74 @@ create_sockaddr_in (
 } // end of [sockaddr_in_init]
 
 atstype_void
-destroy_sockaddr_in (
+ats_destroy_sockaddr_in (
   atstype_ptr sa
 ) {
   free(sa);
 }
 %}
-extern fun create_sockaddr_in(domain : domain_t, addr : int, port : int) : sockaddr_in_t = "mac#create_sockaddr_in"
-extern fun destroy_sockaddr_in(sockaddr : sockaddr_in_t) : void = "mac#destroy_sockaddr_in"
+extern fun create_sockaddr_in(domain : domain_t, addr : int, port : int) : sockaddr_in_t = "mac#ats_create_sockaddr_in"
+extern fun destroy_sockaddr_in(sockaddr : sockaddr_in_t) : void = "mac#ats_destroy_sockaddr_in"
 
 %{
 error_t
-bind_sockaddr_in(
+ats_bind_sockaddr_in (
   int sock
 , atstype_ptr sockaddr
 ) {
-  return bind(sock, sockaddr, sizeof(struct sockaddr_in));
+  int rv = bind(sock, sockaddr, sizeof(struct sockaddr_in));
+  if (rv == 0) {
+    return rv;
+  } else {
+    return errno;
+  }
 }
 %}
+extern fun bind(socket : socket_t, sockaddr : sockaddr_in_t) : error_t = "mac#ats_bind_sockaddr_in"
 
-extern fun bind(socket : socket_t, sockaddr : sockaddr_in_t) : error_t = "mac#bind_sockaddr_in"
+%{
+error_t
+ats_listen (
+  int sock
+, int backlog
+) {
+  int rv = listen(sock, backlog);
+  if (rv == 0) {
+    return rv;
+  } else {
+    return errno;
+  }
+}
+%}
+extern fun listen(socket : socket_t, backlog : int ) : error_t = "mac#ats_listen"
 
 abst@ype shutdown_t = int
 macdef SHUT_RD = $extval(shutdown_t, "SHUT_RD")
 macdef SHUT_WR = $extval(shutdown_t, "SHUT_WR")
 macdef SHUT_RDWR = $extval(shutdown_t, "SHUT_RDWR")
 
-extern fun destroy(socket : socket_t, how : shutdown_t) : error_t = "mac#shutdown"
+%{
+error_t
+ats_shutdown (
+  int socket
+, int how
+) {
+  int rv = shutdown(socket, how);
+  if (rv == 0) {
+    return rv;
+  } else {
+    return errno;
+  }
+}
+%}
+extern fun destroy(socket : socket_t, how : shutdown_t) : error_t = "mac#ats_shutdown"
 
 (*** echo! ***)
 
 implement main(argc, argv) = 
   let val sock = create(AF_INET, SOCK_STREAM, DEFAULT_PROTOCOL)
       val addr_in = create_sockaddr_in(AF_INET, 0, htons(8877))
-      val () = assertloc(bind(sock, addr_in) = error_of_int(0))
+      val () = assertloc(bind(sock, addr_in) = EOK)
       val () = destroy_sockaddr_in(addr_in)
+      val () = assertloc(listen(sock, 5) = EOK)
   in 0 end
