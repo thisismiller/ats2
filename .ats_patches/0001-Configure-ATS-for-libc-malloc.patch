@@ -1,0 +1,28 @@
+From dd94049296da5e6c355144a005c999a66de60020 Mon Sep 17 00:00:00 2001
+From: Alex Miller <millerdevel@gmail.com>
+Date: Fri, 18 Apr 2014 01:05:31 +0000
+Subject: [PATCH] [ATS2] Configure ATS to use libc for memory allocations.
+
+---
+ ccomp/atslib/Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ccomp/atslib/Makefile b/ccomp/atslib/Makefile
+index ab7ee38..4de3b40 100644
+--- a/ccomp/atslib/Makefile
++++ b/ccomp/atslib/Makefile
+@@ -23,9 +23,9 @@ CCFLAGS=-fPIC -O2
+ 
+ ######
+ #
+-DATSMEMALLOC=
++# DATSMEMALLOC=
+ #
+-# DATSMEMALLOC=-DATS_MEMALLOC_LIBC
++DATSMEMALLOC=-DATS_MEMALLOC_LIBC
+ # DATSMEMALLOC=-DATS_MEMALLOC_GCBDW
+ #
+ ######
+-- 
+1.9.2
+
