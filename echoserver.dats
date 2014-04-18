@@ -14,7 +14,11 @@ fun{a:t0p}{b:t0p} either_right .<>. (x : b):<> either(a, b, false) = Right (x)
 #include <sys/socket.h>
 %}
 
-%{
+(* ATS emits the type declarations for ATS-defined types before it starts
+ * processing the actual code here, so we need to make sure the declaration
+ * of error_t is placed at the beginning of the file.
+ *)
+%{^
 #include <errno.h>
 typedef int error_t;
 %}
@@ -119,6 +123,32 @@ ats_listen (
 }
 %}
 extern fun listen(socket : socket_t, backlog : int ) : error_t = "mac#ats_listen"
+
+%{
+atstype_int
+ats_accept (
+  int socket
+) {
+  // TODO: figure out multiple return values and return address also
+  int rv = accept(socket, NULL, NULL);
+  if (rv > 0) {
+    return rv;
+  } else {
+    return errno;
+  }
+}
+%}
+extern fun _ats_accept(socket : socket_t) : int = "mac#ats_accept"
+staload _ = "prelude/DATS/integer.dats" (* rv > 0 *)
+fun accept(socket : socket_t) : Either (socket_t, error_t) =
+  let
+    val rv = _ats_accept(socket)
+  in
+    if rv > 0 then
+      either_left(socket_of_int(rv))
+    else
+      either_right(error_of_int(rv))
+  end
 
 abst@ype shutdown_t = int
 macdef SHUT_RD = $extval(shutdown_t, "SHUT_RD")

@@ -13,7 +13,7 @@ all: bin/demo bin/helloworld bin/echoserver
 UNLIT ?= unlit
 PATSOPT ?= patsopt
 PATSCC ?= patscc
-PATS_CFLAGS ?= -I${PATSHOME} -I${PATSHOME}/ccomp/runtime/ -I .
+PATS_CFLAGS ?= -I${PATSHOME} -I${PATSHOME}/ccomp/runtime/ -I . -DATS_MEMALLOC_LIBC
 PATS_LDFLAGS ?= -L${PATSHOME}/ccomp/atslib/lib/ -latslib
 
 clean:
