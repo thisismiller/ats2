@@ -1,9 +1,18 @@
+(*** either library ***)
+
+datatype either_t0ype_bool_type
+  (a:t@ype+, b:t@ype+, bool) = Left (a, b, true) of (a) | Right (a, b, false) of (b)
+stadef either = either_t0ype_bool_type
+typedef Either (a:t0p, b:t0p) = [c : bool] either (a, b, c)
+
+fun{a:t0p}{b:t0p} either_left .<>. (x : a):<> either(a, b, true) = Left (x)
+fun{a:t0p}{b:t0p} either_right .<>. (x : b):<> either(a, b, false) = Right (x)
+
+(*** socket library ***)
 
 %{
 #include <sys/socket.h>
 %}
-
-(*** socket library ***)
 
 %{
 #include <errno.h>
