@@ -98,6 +98,8 @@ ats_bind_sockaddr_in (
   int sock
 , atstype_ptr sockaddr
 ) {
+  int optval = 1;
+  setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int));
   int rv = bind(sock, sockaddr, sizeof(struct sockaddr_in));
   if (rv == 0) {
     return rv;
@@ -179,4 +181,9 @@ implement main(argc, argv) =
       val () = assertloc(bind(sock, addr_in) = EOK)
       val () = destroy_sockaddr_in(addr_in)
       val () = assertloc(listen(sock, 5) = EOK)
+      val r = accept(sock)
+      val () = case r of
+               | Left(nsock) => assertloc(destroy(nsock, SHUT_RDWR) = EOK)
+               | Right(nsock) => assertloc(false)
+      val () = assertloc(destroy(sock, SHUT_RDWR) = EOK)
   in 0 end
