@@ -2,6 +2,10 @@
 
 sudo apt-get install -qq git libgmp3-dev
 
+# Git complains if it isn't configured
+git config --global user.email "travis@localhost.localdomain"
+git config --global user.name "travis"
+
 git clone https://github.com/thisismiller/literate.git literate
 
 git clone git://git.code.sf.net/p/ats2-lang/code postiats
