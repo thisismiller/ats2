@@ -24,7 +24,7 @@ pushd postiats
 for file in $(ls ../.ats_patches); do
   git am ../.ats_patches/$file
 done
-./autoreconf -i || true
+autoreconf -i || true
 ./configure
 make -f Makefile_devl
 popd
