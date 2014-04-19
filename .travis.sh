@@ -19,6 +19,8 @@ export ATSHOMERELOC=ATS-0.2.11
 
 git clone https://github.com/githwxi/ATS-Postiats.git postiats
 
+export PATSHOME=$(pwd)/postiats
+
 pushd postiats
 #git reset --hard $ATS2_COMMIT
 for file in $(ls ../.ats_patches); do
@@ -31,7 +33,6 @@ popd
 
 git clone https://github.com/thisismiller/literate.git literate
 
-export PATSHOME=$(pwd)/postiats
 export UNLIT=literate/bin/unlit
 export PATSOPT=postiats/bin/patsopt
 export PATSCC=postiats/bin/patscc
