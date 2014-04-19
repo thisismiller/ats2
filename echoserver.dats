@@ -1,3 +1,15 @@
+(*** Missing in standard library? ***)
+
+%{
+void
+ats_free_boxed (
+  atstype_boxed obj
+) {
+  ATS_MFREE(obj);
+}
+%}
+extern fun free_boxed {a:t0p} (x : a): void = "mac#ats_free_boxed"
+
 (*** either library ***)
 
 datatype either_t0ype_bool_type
@@ -185,5 +197,6 @@ implement main(argc, argv) =
       val () = case r of
                | Left(nsock) => assertloc(destroy(nsock, SHUT_RDWR) = EOK)
                | Right(nsock) => assertloc(false)
+      val () = free_boxed(r)
       val () = assertloc(destroy(sock, SHUT_RDWR) = EOK)
   in 0 end
