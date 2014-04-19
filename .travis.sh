@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo apt-get install -qq git svn libgmp3-dev
+sudo apt-get install -qq git subversion libgmp3-dev
 
 # Git complains if it isn't configured
 git config --global user.email "travis@localhost.localdomain"
