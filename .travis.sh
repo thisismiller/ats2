@@ -28,6 +28,7 @@ for file in $(ls ../.ats_patches); do
 done
 autoreconf -i || true
 ./configure
+make -f codegen/Makefile_atslib
 make -f Makefile_devl
 popd
 
