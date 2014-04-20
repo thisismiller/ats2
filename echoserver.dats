@@ -1,7 +1,9 @@
+staload _ = "prelude/DATS/integer.dats" (* rv > 0 *)
+
 (*** Missing in standard library? ***)
 
 %{
-void
+atstype_void
 ats_free_boxed (
   atstype_boxed obj
 ) {
@@ -9,16 +11,46 @@ ats_free_boxed (
 }
 %}
 extern fun free_boxed {a:t0p} (x : a): void = "mac#ats_free_boxed"
+extern fun free_boxed_vt {a:vt0p} (x : a): void = "mac#ats_free_boxed"
+
+(*
+fun with_boxed {a:t0p} (x : a, f : (a) -<fun1> void) : void =
+  let
+    val () = f(x)
+  in
+    free_boxed(x)
+  end
+
+and below
+
+
+  val () = with_boxed_vt(accept(sock),
+             lam (r : Either (socket_t, error_t)) : void =<fun1>
+               case+ r of
+               | Left (nsock : socket_t) => assertloc(destroy(nsock, SHUT_RDWR) = EOK)
+               | Right (err) => assertloc(false))
+
+But this generates some weird error with Left_vt being an existential type
+instead of a constructor?
+*)
 
 (*** either library ***)
 
 datatype either_t0ype_bool_type
-  (a:t@ype+, b:t@ype+, bool) = Left (a, b, true) of (a) | Right (a, b, false) of (b)
+  (a : t@ype+, b : t@ype+, bool) = Left (a, b, true) of (a) | Right (a, b, false) of (b)
 stadef either = either_t0ype_bool_type
 typedef Either (a:t0p, b:t0p) = [c : bool] either (a, b, c)
 
 fun{a:t0p}{b:t0p} either_left .<>. (x : a):<> either(a, b, true) = Left (x)
 fun{a:t0p}{b:t0p} either_right .<>. (x : b):<> either(a, b, false) = Right (x)
+
+dataviewtype either_viewt0ype_bool_type
+  (a : viewt@ype+, b : viewt@ype+, bool) = Left_vt (a, b, true) of (a) | Right_vt (a, b, false) of (b)
+stadef either_vt = either_viewt0ype_bool_type
+vtypedef Either_vt (a:vt0p, b:vt0p) = [c : bool] either_vt (a, b, c)
+
+fun{a:vt0p}{b:vt0p} either_vt_left .<>. (x : a):<> either_vt(a, b, true) = Left_vt (x)
+fun{a:vt0p}{b:vt0p} either_vt_right .<>. (x : b):<> either_vt(a, b, false) = Right_vt (x)
 
 (*** socket library ***)
 
@@ -65,7 +97,7 @@ macdef SOCK_STREAM = $extval(type_t, "SOCK_STREAM")
 abst@ype protocol_t = int
 macdef DEFAULT_PROTOCOL = $extval(protocol_t, "0")
 
-abst@ype socket_t = int
+absviewt@ype socket_t = int
 extern castfn int_of_socket(socket : socket_t):<> int
 extern castfn socket_of_int(i : int):<> socket_t
 
@@ -120,7 +152,7 @@ ats_bind_sockaddr_in (
   }
 }
 %}
-extern fun bind(socket : socket_t, sockaddr : sockaddr_in_t) : error_t = "mac#ats_bind_sockaddr_in"
+extern fun bind(socket : !socket_t, sockaddr : sockaddr_in_t) : error_t = "mac#ats_bind_sockaddr_in"
 
 %{
 error_t
@@ -136,7 +168,7 @@ ats_listen (
   }
 }
 %}
-extern fun listen(socket : socket_t, backlog : int ) : error_t = "mac#ats_listen"
+extern fun listen(socket : !socket_t, backlog : int ) : error_t = "mac#ats_listen"
 
 %{
 atstype_int
@@ -152,16 +184,15 @@ ats_accept (
   }
 }
 %}
-extern fun _ats_accept(socket : socket_t) : int = "mac#ats_accept"
-staload _ = "prelude/DATS/integer.dats" (* rv > 0 *)
-fun accept(socket : socket_t) : Either (socket_t, error_t) =
+extern fun _ats_accept(socket : !socket_t) : int = "mac#ats_accept"
+fun accept(socket : !socket_t) : Either_vt (socket_t, error_t) =
   let
     val rv = _ats_accept(socket)
   in
     if rv > 0 then
-      either_left(socket_of_int(rv))
+      either_vt_left(socket_of_int(rv))
     else
-      either_right(error_of_int(rv))
+      either_vt_right(error_of_int(rv))
   end
 
 abst@ype shutdown_t = int
@@ -194,9 +225,10 @@ implement main(argc, argv) =
       val () = destroy_sockaddr_in(addr_in)
       val () = assertloc(listen(sock, 5) = EOK)
       val r = accept(sock)
-      val () = case r of
-               | Left(nsock) => assertloc(destroy(nsock, SHUT_RDWR) = EOK)
-               | Right(nsock) => assertloc(false)
-      val () = free_boxed(r)
+      val () = case+ r of
+               (* Why is the type annotation of nsock needed to compile? *)
+               | Left_vt (nsock : socket_t) => assertloc(destroy(nsock, SHUT_RDWR) = EOK)
+               | Right_vt (err) => assertloc(false)
+      val () = free_boxed_vt(r)
       val () = assertloc(destroy(sock, SHUT_RDWR) = EOK)
   in 0 end
