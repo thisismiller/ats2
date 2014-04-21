@@ -13,7 +13,7 @@ all: bin/demo bin/helloworld bin/echoserver
 UNLIT ?= unlit
 PATSOPT ?= patsopt
 PATSCC ?= patscc
-PATS_CFLAGS ?= -I${PATSHOME} -I${PATSHOME}/ccomp/runtime/ -I . -DATS_MEMALLOC_LIBC
+PATS_CFLAGS ?= -I${PATSHOME} -I${PATSHOME}/ccomp/runtime/ -I . -DATS_MEMALLOC_LIBC -D_ATS_CCOMP_EXCEPTION_NONE
 PATS_LDFLAGS ?= -L${PATSHOME}/ccomp/atslib/lib/ -latslib
 
 clean:
@@ -33,10 +33,10 @@ bin/%.cats: %.catslit
 
 %_sats.c: %.sats
 	@echo -e "\tSATS\t$*.sats"
-	${AT}$(PATSOPT) --output $@ --static $*.sats
+	${AT}$(PATSOPT) --output $@ --static $^
 bin/%_sats.c: %.sats
 	@echo -e "\tSATS\t$*.sats"
-	${AT}$(PATSOPT) --output $@ --static $*.sats
+	${AT}$(PATSOPT) --output $@ --static $^
 
 %_dats.c: %.dats
 	@echo -e "\tDATS\t$^"
