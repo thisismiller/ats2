@@ -2,6 +2,8 @@
 
 sudo apt-get install -qq git subversion libgmp3-dev
 
+PROCS=$(cat /proc/cpuinfo | grep processor | wc -l)
+
 # Git complains if it isn't configured
 git config --global user.email "travis@localhost.localdomain"
 git config --global user.name "travis"
@@ -10,7 +12,7 @@ svn export svn://svn.code.sf.net/p/ats-lang/code/trunk anariats
 svn export svn://svn.code.sf.net/p/ats-lang/code/bootstrap/anairiats anariats/bootstrap0
 
 pushd anariats
-  make
+  make -j${PROCS}
 popd
 
 export ATSHOME=$(pwd)/anariats
@@ -29,7 +31,7 @@ done
 autoreconf -i || true
 ./configure
 make -f codegen/Makefile_atslib
-make -f Makefile_devl
+make -f Makefile_devl -j ${PROCS}
 popd
 
 git clone https://github.com/thisismiller/literate.git literate
