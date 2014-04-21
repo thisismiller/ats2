@@ -1,3 +1,8 @@
+staload either = "lib/either.sats"
+staload "lib/either.dats"
+dynload "lib/either.sats"
+dynload "lib/either.dats"
+
 staload _ = "prelude/DATS/integer.dats" (* rv > 0 *)
 
 (*** Missing in standard library? ***)
@@ -25,7 +30,7 @@ and below
 
 
   val () = with_boxed_vt(accept(sock),
-             lam (r : Either (socket_t, error_t)) : void =<fun1>
+             lam (r : $either.VT (socket_t, error_t)) : void =<fun1>
                case+ r of
                | Left (nsock : socket_t) => assertloc(destroy(nsock, SHUT_RDWR) = EOK)
                | Right (err) => assertloc(false))
@@ -34,23 +39,6 @@ But this generates some weird error with Left_vt being an existential type
 instead of a constructor?
 *)
 
-(*** either library ***)
-
-datatype either_t0ype_bool_type
-  (a : t@ype+, b : t@ype+, bool) = Left (a, b, true) of (a) | Right (a, b, false) of (b)
-stadef either = either_t0ype_bool_type
-typedef Either (a:t0p, b:t0p) = [c : bool] either (a, b, c)
-
-fun{a:t0p}{b:t0p} either_left .<>. (x : a):<> either(a, b, true) = Left (x)
-fun{a:t0p}{b:t0p} either_right .<>. (x : b):<> either(a, b, false) = Right (x)
-
-dataviewtype either_viewt0ype_bool_type
-  (a : viewt@ype+, b : viewt@ype+, bool) = Left_vt (a, b, true) of (a) | Right_vt (a, b, false) of (b)
-stadef either_vt = either_viewt0ype_bool_type
-vtypedef Either_vt (a:vt0p, b:vt0p) = [c : bool] either_vt (a, b, c)
-
-fun{a:vt0p}{b:vt0p} either_vt_left .<>. (x : a):<> either_vt(a, b, true) = Left_vt (x)
-fun{a:vt0p}{b:vt0p} either_vt_right .<>. (x : b):<> either_vt(a, b, false) = Right_vt (x)
 
 (*** socket library ***)
 
@@ -185,14 +173,14 @@ ats_accept (
 }
 %}
 extern fun _ats_accept(socket : !socket_t) : int = "mac#ats_accept"
-fun accept(socket : !socket_t) : Either_vt (socket_t, error_t) =
+fun accept(socket : !socket_t) : $either.VT (socket_t, error_t) =
   let
     val rv = _ats_accept(socket)
   in
     if rv > 0 then
-      either_vt_left(socket_of_int(rv))
+      $either.vt_left(socket_of_int(rv))
     else
-      either_vt_right(error_of_int(rv))
+      $either.vt_right(error_of_int(rv))
   end
 
 abst@ype shutdown_t = int
@@ -227,8 +215,8 @@ implement main(argc, argv) =
       val r = accept(sock)
       val () = case+ r of
                (* Why is the type annotation of nsock needed to compile? *)
-               | Left_vt (nsock : socket_t) => assertloc(destroy(nsock, SHUT_RDWR) = EOK)
-               | Right_vt (err) => assertloc(false)
+               | $either.Left_vt (nsock : socket_t) => assertloc(destroy(nsock, SHUT_RDWR) = EOK)
+               | $either.Right_vt (err) => assertloc(false)
       val () = free_boxed_vt(r)
       val () = assertloc(destroy(sock, SHUT_RDWR) = EOK)
   in 0 end

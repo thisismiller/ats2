@@ -19,6 +19,7 @@ PATS_LDFLAGS ?= -L${PATSHOME}/ccomp/atslib/lib/ -latslib
 clean:
 	rm -fr bin/
 	mkdir bin
+	mkdir bin/lib
 	touch bin/.keep
 
 bin/%.dats: %.datslit
@@ -64,7 +65,7 @@ bin/helloworld: $(call source_to_obj,${HELLOWORLD_SRCS})
 	@echo -e "\tLD\t$@"
 	${AT}gcc ${PATS_CFLAGS} $^ ${PATS_LDFLAGS} -o $@
 
-ECHOSERVER_SRCS := echoserver.dats
+ECHOSERVER_SRCS := echoserver.dats lib/either.sats lib/either.dats
 bin/echoserver: $(call source_to_obj,${ECHOSERVER_SRCS})
 	@echo -e "\tLD\t$@"
 	${AT}gcc ${PATS_CFLAGS} $^ ${PATS_LDFLAGS} -o $@
