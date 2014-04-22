@@ -12,7 +12,7 @@ svn export svn://svn.code.sf.net/p/ats-lang/code/trunk anariats
 svn export svn://svn.code.sf.net/p/ats-lang/code/bootstrap/anairiats anariats/bootstrap0
 
 pushd anariats
-  make # -j${PROCS}
+  make
 popd
 
 export ATSHOME=$(pwd)/anariats
@@ -31,7 +31,7 @@ done
 autoreconf -i || true
 ./configure
 make -f codegen/Makefile_atslib
-make -j ${PROCS} -f Makefile_devl
+make -f Makefile_devl
 popd
 
 git clone https://github.com/thisismiller/literate.git literate
