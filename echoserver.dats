@@ -1,9 +1,14 @@
 staload either = "lib/either.sats"
 staload "lib/either.dats"
+staload errno = "lib/errno.sats"
 dynload "lib/either.sats"
 dynload "lib/either.dats"
+dynload "lib/errno.sats"
+dynload "lib/errno.dats"
 
 staload _ = "prelude/DATS/integer.dats" (* rv > 0 *)
+
+overload = with $errno.eq_errno_errno
 
 (*** Missing in standard library? ***)
 
@@ -30,7 +35,7 @@ and below
 
 
   val () = with_boxed_vt(accept(sock),
-             lam (r : $either.VT (socket_t, error_t)) : void =<fun1>
+             lam (r : $either.VT (socket_t, errno_t)) : void =<fun1>
                case+ r of
                | Left (nsock : socket_t) => assertloc(destroy(nsock, SHUT_RDWR) = EOK)
                | Right (err) => assertloc(false))
@@ -48,31 +53,8 @@ instead of a constructor?
 
 (* ATS emits the type declarations for ATS-defined types before it starts
  * processing the actual code here, so we need to make sure the declaration
- * of error_t is placed at the beginning of the file.
+ * of errno_t is placed at the beginning of the file.
  *)
-%{^
-#include <errno.h>
-typedef int error_t;
-%}
-abst@ype error_t = $extype"error_t"
-extern castfn int_of_error(err : error_t):<> int
-extern castfn error_of_int(i : int):<> error_t
-
-macdef EOK = error_of_int(0)
-
-%{
-atstype_bool
-op_error_eq_error(
-  error_t lhs
-, error_t rhs
-) {
-  return lhs == rhs;
-}
-%}
-symintr =
-extern fun eq_error_error(lhs : error_t, rhs : error_t): bool = "mac#op_error_eq_error"
-overload = with eq_error_error of 0
-
 %{
 typedef int domain_t;
 %}
@@ -125,7 +107,7 @@ extern fun create_sockaddr_in(domain : domain_t, addr : int, port : int) : socka
 extern fun destroy_sockaddr_in(sockaddr : sockaddr_in_t) : void = "mac#ats_destroy_sockaddr_in"
 
 %{
-error_t
+errno_t
 ats_bind_sockaddr_in (
   int sock
 , atstype_ptr sockaddr
@@ -140,10 +122,10 @@ ats_bind_sockaddr_in (
   }
 }
 %}
-extern fun bind(socket : !socket_t, sockaddr : sockaddr_in_t) : error_t = "mac#ats_bind_sockaddr_in"
+extern fun bind(socket : !socket_t, sockaddr : sockaddr_in_t) : $errno.t = "mac#ats_bind_sockaddr_in"
 
 %{
-error_t
+errno_t
 ats_listen (
   int sock
 , int backlog
@@ -156,7 +138,7 @@ ats_listen (
   }
 }
 %}
-extern fun listen(socket : !socket_t, backlog : int ) : error_t = "mac#ats_listen"
+extern fun listen(socket : !socket_t, backlog : int ) : $errno.t = "mac#ats_listen"
 
 %{
 atstype_int
@@ -173,14 +155,14 @@ ats_accept (
 }
 %}
 extern fun _ats_accept(socket : !socket_t) : int = "mac#ats_accept"
-fun accept(socket : !socket_t) : $either.VT (socket_t, error_t) =
+fun accept(socket : !socket_t) : $either.VT (socket_t, $errno.t) =
   let
     val rv = _ats_accept(socket)
   in
     if rv > 0 then
       $either.vt_left(socket_of_int(rv))
     else
-      $either.vt_right(error_of_int(rv))
+      $either.vt_right($errno.errno_of_int(rv))
   end
 
 abst@ype shutdown_t = int
@@ -189,7 +171,7 @@ macdef SHUT_WR = $extval(shutdown_t, "SHUT_WR")
 macdef SHUT_RDWR = $extval(shutdown_t, "SHUT_RDWR")
 
 %{
-error_t
+errno_t
 ats_shutdown (
   int socket
 , int how
@@ -202,21 +184,21 @@ ats_shutdown (
   }
 }
 %}
-extern fun destroy(socket : socket_t, how : shutdown_t) : error_t = "mac#ats_shutdown"
+extern fun destroy(socket : socket_t, how : shutdown_t) : $errno.t = "mac#ats_shutdown"
 
 (*** echo! ***)
 
 implement main(argc, argv) = 
   let val sock = create(AF_INET, SOCK_STREAM, DEFAULT_PROTOCOL)
       val addr_in = create_sockaddr_in(AF_INET, 0, htons(8877))
-      val () = assertloc(bind(sock, addr_in) = EOK)
+      val () = assertloc(bind(sock, addr_in) = $errno.EOK)
       val () = destroy_sockaddr_in(addr_in)
-      val () = assertloc(listen(sock, 5) = EOK)
+      val () = assertloc(listen(sock, 5) = $errno.EOK)
       val r = accept(sock)
       val () = case+ r of
                (* Why is the type annotation of nsock needed to compile? *)
-               | $either.Left_vt (nsock : socket_t) => assertloc(destroy(nsock, SHUT_RDWR) = EOK)
+               | $either.Left_vt (nsock : socket_t) => assertloc(destroy(nsock, SHUT_RDWR) = $errno.EOK)
                | $either.Right_vt (err) => assertloc(false)
       val () = free_boxed_vt(r)
-      val () = assertloc(destroy(sock, SHUT_RDWR) = EOK)
+      val () = assertloc(destroy(sock, SHUT_RDWR) = $errno.EOK)
   in 0 end
