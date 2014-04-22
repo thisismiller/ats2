@@ -66,7 +66,7 @@ bin/helloworld: $(call source_to_obj,${HELLOWORLD_SRCS})
 	@echo -e "\tLD\t$@"
 	${AT}gcc ${PATS_CFLAGS} $^ ${PATS_LDFLAGS} -o $@
 
-ECHOSERVER_SRCS := echoserver.dats lib/either.sats lib/either.dats lib/errno.sats lib/errno.dats
+ECHOSERVER_SRCS := echoserver.dats lib/either.sats lib/either.dats lib/errno.sats lib/errno.dats lib/socket.sats lib/socket.dats
 bin/echoserver: $(call source_to_obj,${ECHOSERVER_SRCS})
 	@echo -e "\tLD\t$@"
 	${AT}gcc ${PATS_CFLAGS} $^ ${PATS_LDFLAGS} -o $@
