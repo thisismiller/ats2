@@ -28,7 +28,7 @@ fun create(domain : domain_t, type_ : type_t, protocol : protocol_t) : socket_t 
 %}
 fun htons(i : int) : int = "mac#htons"
 
-abst@ype sockaddr_in_t = $extype"atstype_ptr"
+absviewt@ype sockaddr_in_t = $extype"atstype_ptr"
 %{
 #include <netinet/in.h>
 
@@ -41,7 +41,7 @@ fun destroy_sockaddr_in(sockaddr : sockaddr_in_t) : void = "mac#ats_destroy_sock
 %{
 errno_t ats_bind_sockaddr_in (int sock, atstype_ptr sockaddr);
 %}
-fun bind(socket : !socket_t, sockaddr : sockaddr_in_t) : $errno.t = "mac#ats_bind_sockaddr_in"
+fun bind(socket : !socket_t, sockaddr : !sockaddr_in_t) : $errno.t = "mac#ats_bind_sockaddr_in"
 
 %{
 errno_t ats_listen (int sock , int backlog);
