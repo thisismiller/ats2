@@ -79,6 +79,53 @@ implement accept(socket) =
       $either.vt_right($errno.errno_of_int(rv))
   end
 
+%{
+errno_t
+ats_recv (
+  int sock
+, void* buf
+, size_t len
+) {
+  int rv = recv(sock, buf, len, 0);
+  if (rv >= 0) {
+    return rv;
+  } else {
+    return errno;
+  }
+}
+%}
+extern fun _ats_recv {a : vt@ype+}{p : addr}{l : nat}{n : nat | n <= l}
+    (pf : array_v (a?, p, l) | socket : !socket_t, buf : ptr p, len : size_t n)
+    : int = "mac#ats_recv"
+
+implement recv (pf | socket, buf, len) =
+  case+ _ats_recv(pf | socket, buf, len) of
+  | rv when rv >= 0 => $either.t_left(rv)
+  | rv => $either.t_right($errno.errno_of_int(rv))
+
+%{
+errno_t
+ats_send (
+  int sock
+, void* buf
+, size_t len
+) {
+  int rv = send(sock, buf, len, 0);
+  if (rv >= 0) {
+    return rv;
+  } else {
+    return errno;
+  }
+}
+%}
+extern fun _ats_send {a : vt@ype+}{p : addr}{l : int}{n : int | n <= l}
+    (pf : array_v (a, p, l) | socket : !socket_t, buf : ptr p, len : size_t n)
+    : int = "ats_send"
+
+implement send (pf | socket, buf, len) =
+  case+ _ats_send(pf | socket, buf, len) of
+  | rv when rv >= 0 => $either.t_left(rv)
+  | rv => $either.t_right($errno.errno_of_int(rv))
 
 %{
 errno_t

@@ -58,6 +58,13 @@ macdef SHUT_RD = $extval(shutdown_t, "SHUT_RD")
 macdef SHUT_WR = $extval(shutdown_t, "SHUT_WR")
 macdef SHUT_RDWR = $extval(shutdown_t, "SHUT_RDWR")
 
+fun recv {a : vt@ype+}{p : addr}{l : nat}{n : nat | n <= l}
+    (pf : array_v (a?, p, l) | socket : !socket_t, buf : ptr p, len : size_t n)
+    : $either.T (int, $errno.t)
+fun send {a : vt@ype+}{p : addr}{l : int}{n : int | n <= l}
+    (pf : array_v (a, p, l) | socket : !socket_t, buf : ptr p, len : size_t n)
+    : $either.T (int, $errno.t)
+
 %{
 errno_t ats_shutdown (int socket, int how);
 %}
