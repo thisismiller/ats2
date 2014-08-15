@@ -35,7 +35,7 @@ ats_bind_sockaddr_in (
   if (rv == 0) {
     return rv;
   } else {
-    return errno;
+    return -errno;
   }
 }
 
@@ -48,7 +48,7 @@ ats_listen (
   if (rv == 0) {
     return rv;
   } else {
-    return errno;
+    return -errno;
   }
 }
 %}
@@ -64,7 +64,7 @@ ats_accept (
   if (rv > 0) {
     return rv;
   } else {
-    return errno;
+    return -errno;
   }
 }
 %}
@@ -90,18 +90,19 @@ ats_recv (
   if (rv >= 0) {
     return rv;
   } else {
-    return errno;
+    return -errno;
   }
 }
 %}
 extern fun _ats_recv {a : vt@ype+}{p : addr}{l : nat}{n : nat | n <= l}
-    (pf : array_v (a?, p, l) | socket : !socket_t, buf : ptr p, len : size_t n)
-    : int = "mac#ats_recv"
+    (pf : !array_v (a?, p, l) | socket : !socket_t, buf : ptr p, len : size_t n)
+    : [r : int | r <= n] int r = "mac#ats_recv"
 
 implement recv (pf | socket, buf, len) =
   case+ _ats_recv(pf | socket, buf, len) of
-  | rv when rv >= 0 => $either.t_left(rv)
-  | rv => $either.t_right($errno.errno_of_int(rv))
+  | rv when rv >= 0 => $either.t_left(i2sz(rv))
+  | rv => #[0 | $either.t_right($errno.errno_of_int(0-rv))]
+
 
 %{
 errno_t
@@ -114,18 +115,18 @@ ats_send (
   if (rv >= 0) {
     return rv;
   } else {
-    return errno;
+    return -errno;
   }
 }
 %}
 extern fun _ats_send {a : vt@ype+}{p : addr}{l : int}{n : int | n <= l}
-    (pf : array_v (a, p, l) | socket : !socket_t, buf : ptr p, len : size_t n)
-    : int = "ats_send"
+    (pf : !array_v (a, p, l) | socket : !socket_t, buf : ptr p, len : size_t n)
+    : [r : int | r <= n] int r = "ats_send"
 
 implement send (pf | socket, buf, len) =
   case+ _ats_send(pf | socket, buf, len) of
-  | rv when rv >= 0 => $either.t_left(rv)
-  | rv => $either.t_right($errno.errno_of_int(rv))
+  | rv when rv >= 0 => $either.t_left(i2sz(rv))
+  | rv => #[0 | $either.t_right($errno.errno_of_int(rv))]
 
 %{
 errno_t
@@ -137,7 +138,7 @@ ats_shutdown (
   if (rv == 0) {
     return rv;
   } else {
-    return errno;
+    return -errno;
   }
 }
 %}

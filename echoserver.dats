@@ -10,6 +10,7 @@ dynload "lib/socket.sats"
 dynload "lib/socket.dats"
 
 staload _ = "prelude/DATS/integer.dats" (* rv > 0 *)
+staload _ = "prelude/DATS/array.dats" (* rv > 0 *)
 
 overload = with $errno.eq_errno_errno
 
@@ -60,7 +61,19 @@ implement main(argc, argv) =
       val () = case+ r of
                (* Why is the type annotation of nsock needed to compile? *)
                | $either.Left_vt (nsock : $socket.socket_t) =>
-                      assertloc($socket.destroy(nsock, $socket.SHUT_RDWR) = $errno.EOK)
+                      let
+                        val size = i2sz(512) : size_t 512
+                        val (pfat, pfgc | ptr) = array_ptr_alloc<char>(size)
+                        val n_err = $socket.recv(pfat | nsock, ptr, size)
+                        val m_err = case+ n_err of
+                                    | $either.Left(recvd) => free_boxed(
+                                            $socket.send(pfat | nsock, ptr, recvd))
+                                    | $either.Right(err) => assertloc(false)
+                        val () = free_boxed(n_err)
+                        val () = array_ptr_free(pfat, pfgc | ptr)
+                      in
+                        assertloc($socket.destroy(nsock, $socket.SHUT_RDWR) = $errno.EOK)
+                      end
                | $either.Right_vt (err) => assertloc(false)
       val () = free_boxed_vt(r)
       val () = assertloc($socket.destroy(sock, $socket.SHUT_RDWR) = $errno.EOK)
