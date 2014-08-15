@@ -16,6 +16,8 @@ PATSCC ?= patscc
 PATS_CFLAGS ?= -I${PATSHOME} -I${PATSHOME}/ccomp/runtime/ -I . -DATS_MEMALLOC_LIBC
 PATS_LDFLAGS ?= -L${PATSHOME}/ccomp/atslib/lib/ -latslib
 
+atsparemit := ${ATSHOMERELOC}/projects/MEDIUM/ATS-parse-emit/Python/atsparemit
+
 clean:
 	rm -fr bin/
 	mkdir bin
@@ -46,6 +48,10 @@ bin/%_sats.c: %.sats
 bin/%_dats.c: %.dats
 	@echo -e "\tDATS\t$^"
 	${AT}$(PATSOPT) --output $@ --dynamic $^
+
+%.py: %_dats.c
+	@echo -e "\tPY\t$@"
+	${AT}cat $^ | $(atsparemit) > $@
 
 %.o %.d: %.c
 	@echo -e "\tCC\t$*.o"
