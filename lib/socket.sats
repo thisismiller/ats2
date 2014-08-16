@@ -26,7 +26,14 @@ fun create(domain : domain_t, type_ : type_t, protocol : protocol_t) : socket_t 
 %{
 #include <arpa/inet.h>
 %}
-fun htons(i : int) : int = "mac#htons"
+fun htons {n : int | 0 < n && n < 65536} (i : int n)
+  : [r : int | 0 < r && r < 65536] int r = "mac#htons"
+fun ntohs {n : int | 0 < n && n < 65536} (i : int n)
+  : [r : int | 0 < r && r < 65536] int r = "mac#ntohs"
+fun htonl {n : int | 0 < n && n < 4294967296} (i : int n)
+  : [r : int | 0 < r && r < 4294967296] int r = "mac#htonl"
+fun ntohl {n : int | 0 < n && n < 4294967296} (i : int n)
+  : [r : int | 0 < r && r < 4294967296] int r = "mac#ntohl"
 
 absviewt@ype sockaddr_in_t = $extype"atstype_ptr"
 %{
