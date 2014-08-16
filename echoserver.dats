@@ -59,8 +59,7 @@ implement main(argc, argv) =
       val () = assertloc($socket.listen(sock, 5) = $errno.EOK)
       val r = $socket.accept(sock)
       val () = case+ r of
-               (* Why is the type annotation of nsock needed to compile? *)
-               | $either.Left_vt (nsock : $socket.socket_t) =>
+               | $either.Left_vt (nsock) =>
                       let
                         val size = i2sz(512) : size_t 512
                         val (pfat, pfgc | ptr) = array_ptr_alloc<char>(size)
@@ -72,7 +71,7 @@ implement main(argc, argv) =
                         val () = free_boxed(n_err)
                         val () = array_ptr_free(pfat, pfgc | ptr)
                       in
-                        assertloc($socket.destroy(nsock, $socket.SHUT_RDWR) = $errno.EOK)
+                        ()
                       end
                | $either.Right_vt (err) => assertloc(false)
       val () = $socket.destroy_accept_either(r)
