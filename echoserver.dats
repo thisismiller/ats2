@@ -75,6 +75,6 @@ implement main(argc, argv) =
                         assertloc($socket.destroy(nsock, $socket.SHUT_RDWR) = $errno.EOK)
                       end
                | $either.Right_vt (err) => assertloc(false)
-      val () = free_boxed_vt(r)
+      val () = $socket.destroy_accept_either(r)
       val () = assertloc($socket.destroy(sock, $socket.SHUT_RDWR) = $errno.EOK)
   in 0 end

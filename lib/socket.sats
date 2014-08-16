@@ -60,6 +60,8 @@ atstype_int ats_accept (int socket);
 %}
 fun accept(socket : !socket_t) : $either.VT (socket_t, $errno.t)
 
+fun destroy_accept_either(vt : $either.VT (socket_t, $errno.t)) : void
+
 abst@ype shutdown_t = int
 macdef SHUT_RD = $extval(shutdown_t, "SHUT_RD")
 macdef SHUT_WR = $extval(shutdown_t, "SHUT_WR")

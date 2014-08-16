@@ -1,4 +1,5 @@
 staload "lib/socket.sats"
+staload "lib/either.sats"
 staload "lib/either.dats"
 staload _ = "prelude/DATS/integer.dats" (* rv > 0 *)
 
@@ -78,6 +79,11 @@ implement accept(socket) =
     else
       $either.vt_right($errno.errno_of_int(rv))
   end
+
+implement destroy_accept_either(vt) =
+  case+ vt of
+  | ~Left_vt(a) => ignoret(destroy(a, SHUT_RDWR))
+  | ~Right_vt(b) => ()
 
 %{
 errno_t
