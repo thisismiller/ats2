@@ -69,10 +69,11 @@ macdef SHUT_RDWR = $extval(shutdown_t, "SHUT_RDWR")
 
 fun recv {a : vt@ype+}{p : addr}{l : nat}{n : nat | n <= l}
     (pf : !array_v (a?, p, l) | socket : !socket_t, buf : ptr p, len : size_t n)
-    : [r : nat | r <= n] $either.T (size_t r, $errno.t)
+    : [r : nat | r <= n] $either.VT (size_t r, $errno.t)
 fun send {a : vt@ype+}{p : addr}{l : nat}{n : nat | n <= l}
     (pf : !array_v (a, p, l) | socket : !socket_t, buf : ptr p, len : size_t n)
-    : [r : nat | r <= n] $either.T (size_t r, $errno.t)
+    : [r : nat | r <= n] $either.VT (size_t r, $errno.t)
+fun destroy_size_either {n:nat} (vt : $either.VT (size_t n, $errno.t)) : void
 
 %{
 errno_t ats_shutdown (int socket, int how);

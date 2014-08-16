@@ -106,8 +106,8 @@ extern fun _ats_recv {a : vt@ype+}{p : addr}{l : nat}{n : nat | n <= l}
 
 implement recv (pf | socket, buf, len) =
   case+ _ats_recv(pf | socket, buf, len) of
-  | rv when rv >= 0 => $either.t_left(i2sz(rv))
-  | rv => #[0 | $either.t_right($errno.errno_of_int(0-rv))]
+  | rv when rv >= 0 => $either.vt_left(i2sz(rv))
+  | rv => #[0 | $either.vt_right($errno.errno_of_int(0-rv))]
 
 
 %{
@@ -131,8 +131,8 @@ extern fun _ats_send {a : vt@ype+}{p : addr}{l : int}{n : int | n <= l}
 
 implement send (pf | socket, buf, len) =
   case+ _ats_send(pf | socket, buf, len) of
-  | rv when rv >= 0 => $either.t_left(i2sz(rv))
-  | rv => #[0 | $either.t_right($errno.errno_of_int(rv))]
+  | rv when rv >= 0 => $either.vt_left(i2sz(rv))
+  | rv => #[0 | $either.vt_right($errno.errno_of_int(rv))]
 
 %{
 errno_t
@@ -148,3 +148,8 @@ ats_shutdown (
   }
 }
 %}
+
+implement destroy_size_either(t) =
+  case+ t of
+  | ~Left_vt(a) => ()
+  | ~Right_vt(b) => ()

@@ -14,40 +14,6 @@ staload _ = "prelude/DATS/array.dats" (* rv > 0 *)
 
 overload = with $errno.eq_errno_errno
 
-(*** Missing in standard library? ***)
-
-%{
-atstype_void
-ats_free_boxed (
-  atstype_boxed obj
-) {
-  ATS_MFREE(obj);
-}
-%}
-extern fun free_boxed {a:t0p} (x : a): void = "mac#ats_free_boxed"
-extern fun free_boxed_vt {a:vt0p} (x : a): void = "mac#ats_free_boxed"
-
-(*
-fun with_boxed {a:t0p} (x : a, f : (a) -<fun1> void) : void =
-  let
-    val () = f(x)
-  in
-    free_boxed(x)
-  end
-
-and below
-
-
-  val () = with_boxed_vt(accept(sock),
-             lam (r : $either.VT (socket_t, errno_t)) : void =<fun1>
-               case+ r of
-               | Left (nsock : socket_t) => assertloc(destroy(nsock, SHUT_RDWR) = EOK)
-               | Right (err) => assertloc(false))
-
-But this generates some weird error with Left_vt being an existential type
-instead of a constructor?
-*)
-
 
 (*** echo! ***)
 
@@ -65,10 +31,10 @@ implement main(argc, argv) =
                         val (pfat, pfgc | ptr) = array_ptr_alloc<char>(size)
                         val n_err = $socket.recv(pfat | nsock, ptr, size)
                         val m_err = case+ n_err of
-                                    | $either.Left(recvd) => free_boxed(
+                                    | $either.Left_vt(recvd) => $socket.destroy_size_either(
                                             $socket.send(pfat | nsock, ptr, recvd))
-                                    | $either.Right(err) => assertloc(false)
-                        val () = free_boxed(n_err)
+                                    | $either.Right_vt(err) => assertloc(false)
+                        val () = $socket.destroy_size_either(n_err)
                         val () = array_ptr_free(pfat, pfgc | ptr)
                       in
                         ()
